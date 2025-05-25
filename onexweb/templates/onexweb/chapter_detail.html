@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ chapter.title }} - {{ chapter.novel.name }}</title>
+    <script src="https://kit.fontawesome.com/f2e726c693.js" crossorigin="anonymous"></script>
+    <style>
+        /* I don't know why I hate Tailwind CSS so much, but here we go with custom CSS */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        .chapter-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .chapter-nav {
+            z-index: 1000;
+            position: sticky;
+            top: 0;
+            margin: 0;
+            padding: 10px 0;
+            text-align: center;
+            width: 100% !important;
+            left: 0 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        .chapter-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .chapter-content {
+            font-family: Times, 'Times New Roman', 'Noto Sans', serif;
+            font-size: 1.2rem;
+            line-height: 1.6;
+        }
+
+        .home-link,
+        .novel-link,
+        .prev-chapter,
+        .next-chapter {
+            display: inline-block;
+            padding: 10px 15px;
+            color: #ae4ad9;
+        }
+
+        .home-link:hover,
+        .novel-link:hover,
+        .prev-chapter:hover,
+        .next-chapter:hover {
+            background-color: #dcdcdc;
+            color: #ae4ad9;
+        }
+
+        .chapter-select {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="chapter-nav">
+        <a class="home-link" href="{% url 'index' %}" title="Home">
+            <i class="fa fa-home"></i>
+            <noscript>Home</noscript>
+        </a>
+        <a class="novel-link" href="{% url 'novel_detail' novel.novel_id %}" title="Back to Novel">
+            <i class="fa fa-list"></i>
+            <noscript>Back to Novel</noscript>
+        </a>
+        {% if chapter.previous_chapter %}
+            <a class="prev-chapter" href="{% url 'chapter_detail' novel.novel_id chapter.previous_chapter.chapter_id %}" title="Previous Chapter">
+                <i class="fa fa-arrow-left"></i>
+                <noscript>Previous</noscript>
+            </a>
+        {% endif %}
+        <select class="chapter-select" style="width: 25%;" onchange="location = this.value;">
+            <optgroup label="Chapters">
+            {% for ch in novel.chapter_set.all %}
+                <option value="{% url 'chapter_detail' novel.novel_id ch.chapter_id %}" {% if ch.chapter_id == chapter.chapter_id %}selected{% endif %}>
+                    Chương {{ ch.chapter_number }}: {{ ch.title }}
+                </option>
+            {% endfor %}
+            </optgroup>
+        </select>
+        {% if chapter.next_chapter %}
+            <a class="next-chapter" href="{% url 'chapter_detail' novel.novel_id chapter.next_chapter.chapter_id %}" title="Next Chapter">
+                <i class="fa fa-arrow-right"></i>
+                <noscript>Next</noscript>
+            </a>
+        {% endif %}
+    </div>
+    <div class="empty-space" style="height: 20px;"></div>
+    <div class="chapter-container">
+        <div class="chapter-header">
+            <h3 class="chapter-title">{{ chapter.title }}</h1>
+            <p>Part of: <a href="{% url 'novel_detail' chapter.novel.novel_id %}">{{ chapter.novel.name }}</a></p>
+        </div>
+        <div class="chapter-content">
+            {{ chapter.content|linebreaksbr }}
+        </div>
+    </div>
+
+</body>
+</html>
