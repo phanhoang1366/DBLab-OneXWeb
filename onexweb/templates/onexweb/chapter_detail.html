@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ chapter.title }} - {{ chapter.novel.name }}</title>
+    <!-- Include Font Awesome for icons, sorry non-JS users -->
     <script src="https://kit.fontawesome.com/f2e726c693.js" crossorigin="anonymous"></script>
     <style>
         /* I don't know why I hate Tailwind CSS so much, but here we go with custom CSS */
@@ -75,9 +76,45 @@
             padding: 10px;
             font-size: 1rem;
             border-radius: 4px;
+            width: 25%;
             border: 1px solid #ccc;
             background-color: #fff;
             color: #333;
+        }
+        /* Hide fa-home and fa-list icons on mobile without taking space */
+        @media (max-width: 600px) {
+            .fa-home,
+            .fa-list {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            }
+
+            .chapter-nav {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0;
+            }
+
+            .chapter-select {
+            width: 60%;
+            }
+
+            .home-link,
+            .novel-link {
+            min-width: 0;
+            width: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            display: none !important;
+            }
         }
     </style>
 </head>
@@ -97,7 +134,7 @@
                 <noscript>Previous</noscript>
             </a>
         {% endif %}
-        <select class="chapter-select" style="width: 25%;" onchange="location = this.value;">
+        <select class="chapter-select" onchange="location = this.value;">
             <optgroup label="Chapters">
             {% for ch in novel.chapter_set.all %}
                 <option value="{% url 'chapter_detail' novel.novel_id ch.chapter_id %}" {% if ch.chapter_id == chapter.chapter_id %}selected{% endif %}>

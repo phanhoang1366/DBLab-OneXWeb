@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Light Novels E6 DBLab Demo{% endblock %}</title>
+    <style>
+        /* ...existing CSS from index.html and novel_detail.html... */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .header {
+            position: sticky;
+            justify-content: space-between;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 10px 20px;
+        }
+        .header a {
+            text-decoration: none;
+            color: #007bff;
+            margin-left: 10px;
+        }
+        .header a:hover {
+            text-decoration: underline;
+        }
+        .header form {
+            align-items: center;
+        }
+        .header input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        .header button {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .header button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px;
+            }
+            .header-menu,
+            .user-actions {
+                justify-content: center;
+                width: 100%;
+            }
+            .user-actions {
+                margin-top: 5px;
+            }
+        }
+        {% block extra_css %}{% endblock %}
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-menu" style="display: flex; align-items: center; gap: 15px;">
+            <a href="{% url 'index' %}"><strong>LNDB</strong></a>
+            <a href="{% url 'novel_list' %}">Novels</a>
+            <a href="{% url 'author_list' %}">Authors</a>
+            <a href="{% url 'genre_list' %}">Genres</a>
+        </div>
+        <div class="header-search" style="flex: 1; display: flex; justify-content: center;">
+            <form method="get" action="{% url 'novel_list' %}" style="margin: 0; width: 100%; max-width: 350px; display: flex;">
+                <input type="text" name="keywords" placeholder="Search novels..." required style="flex: 1;">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="user-actions" style="display: flex; align-items: center; gap: 10px; min-width: 120px; justify-content: flex-end;">
+            {% if user.is_authenticated %}
+                <span style="margin-right: 8px;">Hi, {{ user.username }}</span>
+                <form method="post" style="display:inline;" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; color: #007bff; border: none; cursor: pointer; padding: 0;">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'signup' %}">Register</a>
+            {% endif %}
+        </div>
+    </div>
+    {% block content %}{% endblock %}
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

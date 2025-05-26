@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ novel.name }} - Novel Details</title>
+    <title>{% block title %}{{ novel.name }} - Novel Details{% endblock %}</title>
+    {% block extra_css %}
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -116,13 +117,15 @@
             margin-bottom: 15px;
         }
         
-        .author-link {
+        .author-link,
+        .rating-link {
             color: #3498db;
             text-decoration: none;
             transition: color 0.2s ease;
         }
         
-        .author-link:hover {
+        .author-link:hover,
+        .rating-link:hover {
             color: #2980b9;
             text-decoration: underline;
         }
@@ -236,6 +239,19 @@
         }
         
         @media (max-width: 768px) {
+            .header {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px;
+            }
+            .header-menu,
+            .user-actions {
+                justify-content: center;
+                width: 100%;
+            }
+            .user-actions {
+                margin-top: 5px;
+            }
             .novel-header {
                 flex-direction: column;
                 text-align: center;
@@ -262,6 +278,7 @@
             }
         }
     </style>
+    {% endblock %}
 </head>
 <body>
     <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
@@ -294,11 +311,9 @@
         <div class="novel-cover">
             <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="cover-image">
         </div>
-        
         <div class="novel-info">
             <div>
                 <h1 class="novel-title">{{ novel.name }}</h1>
-                
                 <div class="info-section">
                     <div class="info-label">Author</div>
                     <div class="info-value">
@@ -317,7 +332,6 @@
                             <a href="{% url 'genre_detail' genre.genre_id %}" class="genre-tag">
                                 {{ genre.genre_name }}
                             </a>
-                            <!-- {% if not forloop.last %}, {% endif %} -->
                         {% endfor %}
                     </div>
                 </div>
@@ -335,10 +349,15 @@
                         {% if ratings %}
                             <!-- This is an array with variables in form (average, count) -->
                             {% with average=ratings.0 average_rating=ratings.1 %}
-                                <span class="rating">{{ average|floatformat:1 }}</span> ({{ average_rating }} {% if average_rating == 1 %}rating{% else %}ratings{% endif %})
+                                <span class="rating">{{ average|floatformat:1 }}</span> 
+                                <a href="{% url 'novel_rating' novel.novel_id %}" class="rating-link">
+                                    ({{ average_rating }} {% if average_rating == 1 %}rating{% else %}ratings{% endif %})
+                                </a>
                             {% endwith %}
                         {% else %}
-                            Not Rated
+                            <a href="{% url 'novel_rating' novel.novel_id %}" class="rating-link">
+                                Not Rated
+                            </a>
                         {% endif %}
                     </div>
                 </div>

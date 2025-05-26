@@ -1,175 +1,105 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Light Novels E6 DBLab Demo</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
+{% extends "onexweb/base.html" %}
 
-        .header {
-            position: sticky;
-            justify-content: space-between;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 10px 20px;
-        }
-        
-        .header a {
-            text-decoration: none;
-            color: #007bff;
-            margin-left: 10px;
-        }
+{% block title %}Light Novels E6 DBLab Demo{% endblock %}
 
-        .header a:hover {
-            text-decoration: underline;
-        }
+{% block extra_css %}
+.novels-list {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow-x: auto;
+    max-width: 100%;
+}
+.novel-card {
+    flex: 0 0 auto;
+    width: 150px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.novel-card:hover {
+    transform: translateY(-5px);
+}
+.novel-image {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+}
+.novel-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+@media (max-width: 768px) {
+    .novels-list {
+        gap: 15px;
+        padding: 15px;
+    }
+    .novel-card {
+        width: 120px;
+    }
+    .novel-image {
+        width: 120px;
+        height: 160px;
+    }
+    .novel-name {
+        font-size: 12px;
+    }
+}
+{% endblock %}
 
-        .header form {
-            align-items: center;
-        }
-
-        .header input[type="text"] {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .header button {
-            padding: 8px 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .header button:hover {
-            background-color: #0056b3;
-        }
-
-        .latest-novels {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            overflow-x: auto;
-            max-width: 100%;
-        }
-        
-        .novel-card {
-            flex: 0 0 auto;
-            width: 150px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-        
-        .novel-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .novel-image {
-            width: 150px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            margin-bottom: 10px;
-        }
-        
-        .novel-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #333;
-            line-height: 1.3;
-            max-height: 2.6em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-        
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px;
-            }
-            .header-menu,
-            .user-actions {
-                justify-content: center;
-                width: 100%;
-            }
-            .user-actions {
-                margin-top: 5px;
-            }
-            .latest-novels {
-                gap: 15px;
-                padding: 15px;
-            }
-            
-            .novel-card {
-                width: 120px;
-            }
-            
-            .novel-image {
-                width: 120px;
-                height: 160px;
-            }
-            
-            .novel-name {
-                font-size: 12px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="header-menu" style="display: flex; align-items: center; gap: 15px;">
-            <a href="{% url 'index' %}"><strong>LNDB</strong></a>
-            <a href="{% url 'novel_list' %}">Novels</a>
-            <a href="{% url 'author_list' %}">Authors</a>
-            <a href="{% url 'genre_list' %}">Genres</a>
-        </div>
-        <div class="header-search" style="flex: 1; display: flex; justify-content: center;">
-            <form method="get" action="{% url 'novel_list' %}" style="margin: 0; width: 100%; max-width: 350px; display: flex;">
-                <input type="text" name="keywords" placeholder="Search novels..." required style="flex: 1;">
-                <button type="submit">Search</button>
-            </form>
-        </div>
-        <div class="user-actions" style="display: flex; align-items: center; gap: 10px; min-width: 120px; justify-content: flex-end;">
-            {% if user.is_authenticated %}
-                <span style="margin-right: 8px;">Hi, {{ user.username }}</span>
-                <form method="post" style="display:inline;" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" style="background: none; color: #007bff; border: none; cursor: pointer; padding: 0;">Logout</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'signup' %}">Register</a>
-            {% endif %}
-        </div>
+{% block content %}
+<h2>Latest Novels</h2>
+<div class="novels-list">
+    {% for novel in latest_novels %}
+    <div class="novel-card">
+        <a href="{% url 'novel_detail' novel.novel_id %}" title="{{ novel.name }}" style="text-decoration: none;">
+            <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="novel-image">
+            <div class="novel-name">{{ novel.name }}</div>
+        </a>
     </div>
+    {% empty %}
+    <p>No novels available.</p>
+    {% endfor %}
+</div>
 
-    <h2>Latest Novels</h2>
-    <div class="latest-novels">
-        {% for novel in latest_novels %}
-        <div class="novel-card">
-            <a href="{% url 'novel_detail' novel.novel_id %}" title="{{ novel.name }}" style="text-decoration: none;">
-                <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="novel-image">
-                <div class="novel-name">{{ novel.name }}</div>
-            </a>
-        </div>
-        {% empty %}
-        <p>No novels available.</p>
-        {% endfor %}
+<h2>Random Novels</h2>
+<div class="novels-list">
+    {% for novel in random_novels %}
+    <div class="novel-card">
+        <a href="{% url 'novel_detail' novel.novel_id %}" title="{{ novel.name }}" style="text-decoration: none;">
+            <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="novel-image">
+            <div class="novel-name">{{ novel.name }}</div>
+        </a>
     </div>
-</body>
-</html>
+    {% empty %}
+    <p>No random novels available.</p>
+    {% endfor %}
+</div>
+
+<h2>Trending Novels</h2>
+<div class="novels-list">
+    {% for novel in trending_novels %}
+    <div class="novel-card">
+        <a href="{% url 'novel_detail' novel.novel_id %}" title="{{ novel.name }}" style="text-decoration: none;">
+            <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="novel-image">
+            <div class="novel-name">{{ novel.name }}</div>
+        </a>
+    </div>
+    {% empty %}
+    <p>No trending novels available.</p>
+    {% endfor %}
+</div>
+
+{% endblock %}

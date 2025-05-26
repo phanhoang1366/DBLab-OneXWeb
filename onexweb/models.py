@@ -99,6 +99,9 @@ class Chapter(models.Model):
     published_date = models.DateTimeField(default=timezone.now)
     content = models.TextField()
 
+    class Meta:
+        unique_together = ('novel', 'chapter_number')
+    
     def __str__(self):
         return f"{self.novel.name} - Chapter {self.chapter_number}"
     

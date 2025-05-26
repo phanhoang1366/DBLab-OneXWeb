@@ -15,5 +15,5 @@ urlpatterns = [
     path("genres/", views.GenreListView.as_view(), name="genre_list"),
     path("genres/<int:pk>/", views.GenreDetailView.as_view(), name="genre_detail"),
     path("novel/<int:novel_id>/chapters/<int:chapter_id>/", views.ChapterDetailView.as_view(), name="chapter_detail"),
-    path("novel/<int:novel_id>/rating/", views.RatingView.as_view(), name="rating"),
+    path("novel/<int:novel_id>/rating/", views.RatingView.as_view(), name="novel_rating"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

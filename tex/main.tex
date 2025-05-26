@@ -51,8 +51,14 @@
 \titlepage
 
 \begin{frame}{Nội dung}
-    \tableofcontents
+    \tableofcontents[pausesections]
 \end{frame}
+
+\AtBeginSection[]{
+    \begin{frame}{Nội dung}
+        \tableofcontents[currentsection]
+    \end{frame}
+}
 
 % yêu cầu mô tả rõ hơn
 % chuẩn hóa
@@ -226,7 +232,7 @@ CREATE TABLE Novel_Genres (
 
 % Slide 5.5: Trigger for updating last_updated
 \begin{frame}[fragile]
-\frametitle{Trigger: Cập nhật last_updated khi có thay đổi}
+\frametitle{Trigger: Cập nhật last\_updated khi có thay đổi}
 \begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 CREATE TRIGGER update_last_updated
 AFTER INSERT OR UPDATE ON Chapter
@@ -369,14 +375,12 @@ WHERE g.genre_name = 'Fantasy';
 \frametitle{Truy vấn: Lấy chương của tiểu thuyết}
 \begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 -- Get chapters of a specific novel
-SELECT chapter_number, title, published_date 
-FROM Chapter 
+SELECT chapter_number, title, published_date FROM Chapter 
 WHERE novel_id = 1 
 ORDER BY chapter_number;
 
 -- Get latest chapter of each novel
-SELECT n.name, c.title, c.published_date
-FROM Novel n
+SELECT n.name, c.title, c.published_date FROM Novel n
 JOIN Chapter c ON n.novel_id = c.novel_id
 WHERE c.published_date = (
     SELECT MAX(published_date) 
@@ -387,7 +391,7 @@ WHERE c.published_date = (
 \end{frame}
 
 % Slide 14: Query - Tính điểm đánh giá trung bình
-\begin{frame}[fragile]
+\begin{frame}[fragile,allowframebreaks]
 \frametitle{Truy vấn: Tính điểm đánh giá trung bình}
 \begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 -- Get average rating for each novel
@@ -398,10 +402,13 @@ FROM Novel n
 LEFT JOIN Rating r ON n.novel_id = r.novel_id
 GROUP BY n.novel_id, n.name
 ORDER BY average_rating DESC;
+\end{lstlisting}
 
+\framebreak
+
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 -- Get highly rated novels (4+ stars)
-SELECT n.name, AVG(r.stars) as avg_rating
-FROM Novel n
+SELECT n.name, AVG(r.stars) as avg_rating FROM Novel n
 JOIN Rating r ON n.novel_id = r.novel_id
 GROUP BY n.novel_id, n.name
 HAVING AVG(r.stars) >= 4.0
@@ -411,35 +418,28 @@ ORDER BY avg_rating DESC;
 
 % Slide 15: Query - Truy vấn phức tạp
 \begin{frame}[fragile]
-\frametitle{Truy vấn phức tạp: Thông tin đầy đủ tiểu thuyết}
+\frametitle{Truy vấn phức tạp: Lấy thông tin tiểu thuyết}
 \begin{lstlisting}[language=SQL, basicstyle=\tiny\ttfamily]
--- Get comprehensive novel information
-SELECT 
-    n.name as novel_name,
-    n.status,
-    n.last_updated,
-    GROUP_CONCAT(DISTINCT a.author_name) as authors,
-    GROUP_CONCAT(DISTINCT g.genre_name) as genres,
-    AVG(r.stars) as avg_rating,
-    COUNT(DISTINCT r.rating_id) as total_ratings,
-    COUNT(DISTINCT c.chapter_id) as total_chapters,
-    MAX(c.published_date) as latest_chapter_date
+-- Get detailed information about novels with their authors and genres
+SELECT n.novel_id, 
+       n.name AS novel_name, 
+       n.status AS novel_status,
+       a.author_name AS author_name, 
+       g.genre_name AS genre_name
 FROM Novel n
-LEFT JOIN Novel_Authors na ON n.novel_id = na.novel_id
-LEFT JOIN Author a ON na.author_id = a.author_id
-LEFT JOIN Novel_Genres ng ON n.novel_id = ng.novel_id
-LEFT JOIN Genre g ON ng.genre_id = g.genre_id
-LEFT JOIN Rating r ON n.novel_id = r.novel_id
-LEFT JOIN Chapter c ON n.novel_id = c.novel_id
-GROUP BY n.novel_id, n.name, n.status, n.last_updated
-ORDER BY avg_rating DESC, total_ratings DESC;
+JOIN Novel_Authors na ON n.novel_id = na.novel_id
+JOIN Author a ON na.author_id = a.author_id
+JOIN Novel_Genres ng ON n.novel_id = ng.novel_id
+JOIN Genre g ON ng.genre_id = g.genre_id
+WHERE n.status IN ('ongoing', 'completed')
+ORDER BY n.last_updated DESC, n.name;
 \end{lstlisting}
 \end{frame}
 
 % Slide 16: Query - Lấy tiểu thuyết đang hot
 \begin{frame}[fragile]
 \frametitle{Truy vấn: Lấy tiểu thuyết đang hot}
-\begin{lstlisting}[language=SQL, basicstyle=\tiny\ttfamily]
+\begin{lstlisting}[language=SQL, basicstyle=\scriptsize\ttfamily]
 -- Get trending novels (recent updates + high ratings)
 SELECT 
     n.name, 
@@ -454,6 +454,51 @@ LEFT JOIN Rating r ON n.novel_id = r.novel_id
 WHERE n.status IN ('ongoing', 'completed')
 GROUP BY n.novel_id, n.name, n.status, n.last_updated
 HAVING COUNT(r.rating_id) > 0
+ORDER BY trending_score DESC
+LIMIT 10;
+\end{lstlisting}
+\end{frame}
+
+% Slide 17: A better way for trending novels
+\begin{frame}[fragile,allowframebreaks]
+\frametitle{Cách khác để lấy tiểu thuyết đang hot?}
+\begin{lstlisting}[language=SQL, basicstyle=\footnotesize\ttfamily]
+ALTER TABLE Novel
+ADD COLUMN trending_score REAL DEFAULT 0;
+
+CREATE TRIGGER update_trending_score
+AFTER INSERT OR UPDATE ON Rating
+BEGIN
+    UPDATE Novel
+    SET trending_score = (
+        SELECT AVG(stars) * (1.0 / (julianday('now') - julianday(last_updated) + 1))
+        FROM Rating
+        WHERE novel_id = NEW.novel_id
+    )
+    WHERE novel_id = NEW.novel_id;
+END;
+\end{lstlisting}
+
+\framebreak
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
+CREATE EVENT update_trending_score_event
+ON SCHEDULE EVERY 1 DAY
+DO
+BEGIN
+    UPDATE Novel
+    SET trending_score = (
+        SELECT AVG(stars) * (1.0 / (julianday('now') - julianday(last_updated) + 1))
+        FROM Rating
+        WHERE novel_id = Novel.novel_id
+    );
+END;
+\end{lstlisting}
+
+\framebreak
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
+-- Get top 10 trending novels
+SELECT name, status, trending_score
+FROM Novel
 ORDER BY trending_score DESC
 LIMIT 10;
 \end{lstlisting}

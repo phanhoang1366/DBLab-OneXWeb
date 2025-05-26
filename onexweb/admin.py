@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.urls import path
+from django.http import JsonResponse
+from .forms import ChapterAdminForm
 
 # Register your models here.
 from .models import Author, Genre, Novel, Chapter, Rating
@@ -62,7 +65,7 @@ class GenreAdmin(admin.ModelAdmin):
 class NovelAdmin(admin.ModelAdmin):
     list_display = ('novel_id', 'name', 'status', 'last_updated', 'cover_tag')
     search_fields = ('name',)
-    list_filter = ('status',)
+    list_filter = ('status', 'authors', 'genres')
     ordering = ('novel_id',)
     list_per_page = 10
     list_editable = ('status',)
@@ -86,6 +89,8 @@ class NovelAdmin(admin.ModelAdmin):
         return True
     
 class ChapterAdmin(admin.ModelAdmin):
+    form = ChapterAdminForm # Use the custom form for Chapter model
+
     list_display = ('novel', 'chapter_number', 'title', 'published_date')
     search_fields = ('title',)
     list_filter = ('novel',)
@@ -110,6 +115,25 @@ class ChapterAdmin(admin.ModelAdmin):
         return True
     def has_view_permission(self, request, obj=None):
         return True
+    
+    class Media:
+        js = ('admin/js/chapter_admin.js',)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('next_chapter_number/', self.admin_site.admin_view(self.next_chapter_number))
+        ]
+        return custom_urls + urls
+
+    def next_chapter_number(self, request):
+        novel_id = request.GET.get('novel_id')
+        if novel_id:
+            last_chapter = Chapter.objects.filter(novel_id=novel_id).order_by('-chapter_number').first()
+            next_number = (last_chapter.chapter_number + 1) if last_chapter else 1
+            return JsonResponse({'next_chapter_number': next_number})
+        return JsonResponse({'next_chapter_number': 1})
+
     
 class RatingAdmin(admin.ModelAdmin):
     list_display = ('novel', 'user', 'stars', 'content', 'created_at')

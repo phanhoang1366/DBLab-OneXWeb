@@ -25,8 +25,16 @@ class IndexView(generic.ListView):
     # Novel has a method called get_cover_url() that returns the URL of the cover image.
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        latest_novels = self.get_queryset().order_by('-last_updated')[:5]
+        latest_novels = self.get_queryset().order_by('-last_updated')[:10]
+        random_novels = self.get_queryset().order_by('?')[:10]  # Randomly select 5 novels
+        
+        trending_filter = Novel.objects.all()
+        sorted_novels = sorted(trending_filter, key=lambda x: x.trending_score(), reverse=True) # but then that's expensive
+        trending_novels = sorted_novels[:10]  # Get top 5 trending novels
+
         context['latest_novels'] = latest_novels
+        context['random_novels'] = random_novels
+        context['trending_novels'] = trending_novels
         context['placeholder_image'] = placeholder_image_url  # Placeholder image URL
         # Example: get the cover image of the first novel, if any
         return context
