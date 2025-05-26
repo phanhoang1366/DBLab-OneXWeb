@@ -147,13 +147,13 @@
         <div class="user-actions" style="display: flex; align-items: center; gap: 10px; min-width: 120px; justify-content: flex-end;">
             {% if user.is_authenticated %}
                 <span style="margin-right: 8px;">Hi, {{ user.username }}</span>
-                <form method="post" style="display:inline;"><!-- action="% url 'logout' %" -->
+                <form method="post" style="display:inline;" action="{% url 'logout' %}">
                     {% csrf_token %}
                     <button type="submit" style="background: none; color: #007bff; border: none; cursor: pointer; padding: 0;">Logout</button>
                 </form>
             {% else %}
                 <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'register' %}">Register</a>
+                <a href="{% url 'signup' %}">Register</a>
             {% endif %}
         </div>
     </div>

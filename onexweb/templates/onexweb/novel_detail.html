@@ -12,6 +12,47 @@
             background-color: #f5f5f5;
             color: #333;
         }
+
+        .header {
+            position: sticky;
+            justify-content: space-between;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 10px 20px;
+        }
+        
+        .header a {
+            text-decoration: none;
+            color: #007bff;
+            margin-left: 10px;
+        }
+
+        .header a:hover {
+            text-decoration: underline;
+        }
+
+        .header form {
+            align-items: center;
+        }
+
+        .header input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+
+        .header button {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .header button:hover {
+            background-color: #0056b3;
+        }
         
         .novel-container {
             max-width: 1200px;
@@ -174,13 +215,13 @@
             margin-bottom: 10px;
         }
         .chapters-list a {
-            color: #3498db;
+            color: #ed08f5;
             text-decoration: none;
             font-size: 1rem;
             transition: color 0.2s ease;
         }
         .chapters-list a:hover {
-            color: #2980b9;
+            color: #c700ff;
             text-decoration: underline;
         }
 
@@ -223,7 +264,32 @@
     </style>
 </head>
 <body>
-
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="header-menu" style="display: flex; align-items: center; gap: 15px;">
+            <a href="{% url 'index' %}"><strong>LNDB</strong></a>
+            <a href="{% url 'novel_list' %}">Novels</a>
+            <a href="{% url 'author_list' %}">Authors</a>
+            <a href="{% url 'genre_list' %}">Genres</a>
+        </div>
+        <div class="header-search" style="flex: 1; display: flex; justify-content: center;">
+            <form method="get" action="{% url 'novel_list' %}" style="margin: 0; width: 100%; max-width: 350px; display: flex;">
+                <input type="text" name="keywords" placeholder="Search novels..." required style="flex: 1;">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+        <div class="user-actions" style="display: flex; align-items: center; gap: 10px; min-width: 120px; justify-content: flex-end;">
+            {% if user.is_authenticated %}
+                <span style="margin-right: 8px;">Hi, {{ user.username }}</span>
+                <form method="post" style="display:inline;" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; color: #007bff; border: none; cursor: pointer; padding: 0;">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'signup' %}">Register</a>
+            {% endif %}
+        </div>
+    </div>
     <div class="novel-header">
         <div class="novel-cover">
             <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="cover-image">
@@ -250,7 +316,8 @@
                         {% for genre in novel.genres.all %}
                             <a href="{% url 'genre_detail' genre.genre_id %}" class="genre-tag">
                                 {{ genre.genre_name }}
-                            </a>{% if not forloop.last %}, {% endif %}
+                            </a>
+                            <!-- {% if not forloop.last %}, {% endif %} -->
                         {% endfor %}
                     </div>
                 </div>

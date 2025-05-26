@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from rest_framework import viewsets
 from django.shortcuts import render
 from django.http import HttpResponse
 
 from django.views import View, generic
+from django.urls import reverse_lazy
 
 from .models import Novel, Chapter, Author, Genre
 from django.db import models
@@ -29,6 +31,15 @@ class IndexView(generic.ListView):
         # Example: get the cover image of the first novel, if any
         return context
         
+class SignUpView(generic.CreateView):
+    model = User
+    template_name = 'registration/signup.html'
+    form_class = UserCreationForm  # You can create a custom form for user registration
+    success_url = reverse_lazy('login')  # Redirect to login page after successful signup
+
+    def form_valid(self, form):
+        # You can add additional logic here if needed, like sending a welcome email
+        return super().form_valid(form)
 
 class NovelListView(generic.ListView):
     template_name = 'onexweb/novel_list.html'
@@ -126,7 +137,16 @@ class NovelViewSet(ReadOnlyModelViewSet):
 # Can I make a Chapter viewset for a specific novel?
 # Yes, you can create a Chapter viewset that filters chapters based on the novel they belong to.
 
-
 # Note: The above views are basic examples. In a real application, you would typically use Django's class-based views or function-based views to handle requests and responses more effectively.
 # You would also need to set up URL routing to connect these views to specific URLs in your application.
 # Additionally, you might want to implement authentication and permissions for your API views.
+
+class RatingView(View):
+    def post(self, request, novel_id):
+        # Handle the rating logic for a specific novel
+        return HttpResponse(f"Rating logic for Novel {novel_id} goes here")
+    
+    def get(self, request, novel_id):
+        # Display the current rating for a specific novel
+        return HttpResponse(f"Current rating for Novel {novel_id} goes here")
+    
