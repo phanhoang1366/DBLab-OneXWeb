@@ -1,0 +1,293 @@
+{% extends "onexweb/base.html" %}
+
+{% block title %}Ratings for {{ novel.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.rating-page-flex {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100%;
+    max-width: 1100px;
+    margin: 40px auto 0 auto;
+    gap: 0;
+}
+.rating-main-content {
+    flex: 1 1 0;
+    margin-right: 0;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 30px 30px 20px 30px;
+    min-width: 0;
+}
+.rating-list-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 18px;
+}
+.rating-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+}
+.rating-list li {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 18px 0 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.rating-list-title a {
+    color: #007bff;
+    text-decoration: none;
+}
+.rating-list-title a:hover {
+    text-decoration: underline;
+}
+.rating-user {
+    font-weight: 600;
+    color: #4299e1;
+    margin-right: 10px;
+}
+.rating-stars {
+    color: #fbbf24;
+    font-size: 1.1em;
+    margin-right: 10px;
+    letter-spacing: 1px;
+}
+.rating-date {
+    color: #888;
+    font-size: 0.95em;
+    margin-right: 10px;
+}
+.rating-content {
+    margin-top: 4px;
+    color: #444;
+}
+.rating-actions {
+    margin-top: 8px;
+}
+.rating-actions form {
+    display: inline;
+}
+.rating-actions button {
+    background: none;
+    border: none;
+    color: #e53e3e;
+    cursor: pointer;
+    font-size: 0.95em;
+    margin-left: 10px;
+}
+.rating-actions button.edit-btn {
+    color: #4299e1;
+}
+.rating-form-section {
+    margin-top: 30px;
+    padding-top: 18px;
+    border-top: 1px solid #eee;
+}
+.rating-form-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.rating-form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+}
+.rating-form select,
+.rating-form textarea {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+}
+.rating-form textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+.rating-form button {
+    background: #4299e1;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 18px;
+    font-size: 1em;
+    cursor: pointer;
+    margin-right: 10px;
+}
+.rating-form button:hover {
+    background: #3182ce;
+}
+/* Make the delete button red */
+.rating-form button.delete-btn {
+    background: #e53e3e;
+    color: #fff;
+}
+.rating-form button.delete-btn:hover {
+    background: #c53030;
+}
+.rating-sidebar {
+    width: 260px;
+    min-width: 220px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    padding: 20px 15px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    margin-left: 30px;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.rating-novel-cover {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.13);
+    margin-bottom: 18px;
+}
+.rating-novel-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    text-align: center;
+}
+.rating-novel-meta {
+    font-size: 0.97em;
+    color: #666;
+    margin-bottom: 10px;
+    text-align: center;
+}
+@media (max-width: 1000px) {
+    .rating-sidebar {
+        margin-left: 0;
+        margin-top: 20px;
+        width: 100%;
+        border-radius: 8px;
+    }
+    .rating-page-flex {
+        flex-direction: column;
+    }
+    .rating-main-content {
+        max-width: 100%;
+    }
+}
+@media (max-width: 992px) {
+    .rating-sidebar {
+        display: none;
+    }
+    .rating-main-content {
+        margin-right: 0;
+        max-width: 100%;
+    }
+    .rating-page-flex {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rating-page-flex">
+    <div class="rating-main-content">
+        <div class="rating-list-title">Ratings for <a href="{% url 'novel_detail' novel.novel_id %}">{{ novel.name }}</a></div>
+        <ul class="rating-list">
+            {% for rating in ratings %}
+                <li>
+                    <div>
+                        <span class="rating-user">{{ rating.user.username }}</span>
+                        <span class="rating-stars">
+                            {# Always show 5 stars, filled and empty #}
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= rating.stars %}
+                                    &#9733;
+                                {% else %}
+                                    <span style="color:#ddd">&#9733;</span>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                        <span class="rating-date">{{ rating.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    {% if rating.content %}
+                        <div class="rating-content">{{ rating.content }}</div>
+                    {% endif %}
+                    <!-- {% if user.is_authenticated and rating.user == user %}
+                        <div class="rating-actions">
+                            <form method="post" action="{% url 'novel_rating' novel.novel_id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="edit">
+                                <button type="submit" class="edit-btn">Edit</button>
+                            </form>
+                            <form method="post" action="{% url 'novel_rating' novel.novel_id %}" onsubmit="return confirm('Are you sure you want to delete your rating?');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="delete">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </div>
+                    {% endif %} -->
+                </li>
+            {% empty %}
+                <li>No ratings yet.</li>
+            {% endfor %}
+        </ul>
+        <div class="rating-form-section">
+            {% if not user.is_authenticated %}
+                <p>Please <a href="{% url 'login' %}">log in</a> to rate this novel.</p>
+            {% else %}
+            <div class="rating-form-title">
+                {% if user_rating %}Edit Your Rating{% else %}Add a Rating{% endif %}
+            </div>
+            <form method="post" class="rating-form" action="{% url 'novel_rating' novel.novel_id %}">
+                {% csrf_token %}
+                <label for="stars">Stars:</label>
+                <select name="stars" id="stars" required>
+                    <option value="">Select...</option>
+                    {% for i in "12345"|make_list %}
+                        <option value="{{ i }}" {% if user_rating and user_rating.stars|stringformat:"s" == i %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+                <label for="content">Comment (optional):</label>
+                <textarea name="content" id="content" placeholder="Share your thoughts...">{% if user_rating %}{{ user_rating.content }}{% endif %}</textarea>
+                <button type="submit" name="action" value="{% if user_rating %}edit{% else %}add{% endif %}">
+                    {% if user_rating %}Update{% else %}Submit{% endif %}
+                </button>
+                {% if user_rating %}
+                <button type="submit" name="action" value="delete" class="delete-btn" onclick="return confirm('Are you sure you want to delete your rating?');">Delete</button>
+                {% endif %}
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+    <!-- <aside class="rating-sidebar">
+        <img class="rating-novel-cover" src="{% if novel.cover %}{{ novel.cover.url }}{% else %}{{ placeholder_image }}{% endif %}" alt="{{ novel.name }}">
+        <div>
+            <div class="rating-novel-title">{{ novel.name }}</div>
+            <div class="rating-novel-meta">
+                {% if novel.authors.all %}
+                    by
+                    {% for author in novel.authors.all %}
+                        <a href="{% url 'author_detail' author.author_id %}">{{ author.author_name }}</a>{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                {% endif %}
+                <br>
+                Status: <span>{{ novel.get_status_display }}</span>
+                <br>
+                Last updated: {{ novel.last_updated|date:"Y-m-d" }}
+            </div>
+            <a href="{% url 'novel_detail' novel.novel_id %}" style="color:#4299e1;">&larr; Back to Novel</a>
+        </div>
+    </aside> -->
+
+{% endblock %}

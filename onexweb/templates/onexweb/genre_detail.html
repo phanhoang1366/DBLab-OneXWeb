@@ -1,0 +1,151 @@
+{% extends "onexweb/novel_list_base.html" %}
+
+{% block title %}{{ genre.name }} - Genre Details{% endblock %}
+
+{% block more_css %}
+    .genre-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(139, 69, 19, 0.12);
+        width: 100%;
+        margin: 0 0 20px 0;
+        overflow: hidden;
+        border: 2px solid rgba(218, 165, 32, 0.2);
+    }
+
+    .card-content {
+        padding: 30px;
+    }
+
+    .genre-info {
+        width: 100%;
+    }
+
+    .genre-name {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #d4a574, #8b4513);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .genre-description {
+        font-size: 1.1rem;
+        line-height: 1.7;
+        color: #4a5568;
+        text-align: justify;
+    }
+
+    .genre-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #daa520, #cd853f);
+        color: white;
+        padding: 8px 18px;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+    }
+
+    .genre-icon {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        vertical-align: middle;
+        background: linear-gradient(135deg, #daa520, #cd853f);
+        border-radius: 50%;
+        position: relative;
+    }
+
+    .genre-icon::before {
+        content: "📚";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+        body {
+            padding: 15px;
+        }
+
+        .genre-card {
+            border-radius: 15px;
+        }
+
+        .card-content {
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .genre-name {
+            font-size: 1.8rem;
+            margin-bottom: 12px;
+        }
+
+        .genre-description {
+            font-size: 1rem;
+            text-align: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .card-content {
+            padding: 20px 15px;
+        }
+
+        .genre-name {
+            font-size: 1.6rem;
+        }
+
+        .genre-description {
+            font-size: 0.95rem;
+        }
+
+        .genre-badge {
+            padding: 6px 15px;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Accent line */
+    .genre-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #daa520, #cd853f, #d4a574);
+    }
+
+    .genre-card {
+        position: relative;
+    }
+{% endblock %}
+
+{% block info %}
+        <div class="genre-card">
+        <div class="card-content">
+            <div class="genre-info">
+                <div class="genre-badge">
+                    <span class="genre-icon"></span>
+                    Genre
+                </div>
+                <h1 class="genre-name">{{ genre.genre_name }}</h1>
+                <p class="genre-description">{{ genre.genre_description }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

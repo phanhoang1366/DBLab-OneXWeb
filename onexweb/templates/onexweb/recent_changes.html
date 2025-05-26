@@ -1,0 +1,127 @@
+{% extends "onexweb/base.html" %}
+
+{% block title %}Recent Changes{% endblock %}
+
+{% block extra_css %}
+<style>
+.recent-changes-container {
+    max-width: 700px;
+    display: flex;
+    justify-content: center;
+    margin: 40px auto 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 30px 30px 20px 30px;
+}
+.recent-changes-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.recent-changes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.recent-changes-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 1.05rem;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.recent-changes-list li:last-child {
+    border-bottom: none;
+}
+.change-timestamp {
+    color: #888;
+    font-size: 0.95em;
+    min-width: 140px;
+    font-family: monospace;
+}
+
+.change-chapter {
+    font-weight: 600;
+    color: #007bff;
+}
+
+.change-chapter a {
+    color: inherit;
+    text-decoration: none;
+}
+.change-novel {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+.change-novel:hover {
+    text-decoration: underline;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 25px 0 0 0;
+}
+.pagination .page-link {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+.pagination .page-link.active,
+.pagination .page-link:hover {
+    background: #4299e1;
+    color: #fff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="recent-changes-container">
+    <div class="recent-changes-title">Recent Changes</div>
+    <ul class="recent-changes-list">
+        {% for chapter in recent_changes %}
+            <li>
+                <span class="change-timestamp">{{ chapter.published_date|date:"Y-m-d H:i" }}</span>
+                <span class="change-chapter">
+                    <a href="{% url 'chapter_detail' chapter.novel.novel_id chapter.chapter_id %}">
+                        {{ chapter.title }}
+                    </a>
+                </span>
+                from
+                <a class="change-novel" href="{% url 'novel_detail' chapter.novel.novel_id %}">
+                    {{ chapter.novel.name }}
+                </a>
+            </li>
+        {% empty %}
+            <li>No recent changes found.</li>
+        {% endfor %}
+    </ul>
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo; Prev</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

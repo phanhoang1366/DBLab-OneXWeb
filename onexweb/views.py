@@ -11,8 +11,9 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from django.shortcuts import redirect
 
-from .models import Novel, Chapter, Author, Genre
-from django.db import models
+from .models import Novel, Chapter, Author, Genre, Rating
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from onexweb.serializers import AuthorSerializer, GenreSerializer, NovelSerializer
 
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -113,40 +114,55 @@ class NovelDetailView(generic.DetailView):
         context['ratings'] = self.object.star_rating()
         return context
 
-class AuthorListView(View):
-    def get(self, request):
-        # Here you would typically query the database for authors and pass them to a template
-        return HttpResponse("List of Authors")
-        # Example: authors = Author.objects.all()
-        # return render(request, 'author_list.html', {'authors': authors})
+class AuthorDetailView(generic.DetailView):
+    model = Author
+    template_name = 'onexweb/author_detail.html'
+    context_object_name = 'author'
+    paginate_by = 18 # Number of novels per page
 
-class AuthorDetailView(View):
-    def get(self, request, author_id):
-        # Here you would typically query the database for a specific author and pass it to a template
-        return HttpResponse(f"Details of Author {author_id}")
-        # Example: author = Author.objects.get(author_id=author_id)
-        # return render(request, 'author_detail.html', {'author': author})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Here you can add additional context if needed, like novels by the author
+        context['novels'] = self.object.novels.all()
+        sort = self.request.GET.get('sort', 'latest')
+        context['sort'] = sort
+        if sort == 'latest':
+            context['novels'] = context['novels'].order_by('-last_updated')
+        elif sort == 'az':
+            context['novels'] = context['novels'].order_by('name')
+        elif sort == 'random':
+            context['novels'] = context['novels'].order_by('?')
+        elif sort == 'trending':
+            # Trending: sort by trending_score (expensive, so fetch all and sort in Python)
+            novels = list(context['novels'])
+            novels.sort(key=lambda x: x.trending_score(), reverse=True)
+            context['novels'] = novels
+        return context
 
-class GenreListView(View):
-    def get(self, request):
-        # Here you would typically query the database for genres and pass them to a template
-        return HttpResponse("List of Genres")
-        # Example: genres = Genre.objects.all()
-        # return render(request, 'genre_list.html', {'genres': genres})
+class GenreDetailView(generic.DetailView):
+    model = Genre
+    template_name = 'onexweb/genre_detail.html'
+    context_object_name = 'genre'
+    paginate_by = 18  # Number of novels per page
 
-class GenreDetailView(View):
-    def get(self, request, genre_id):
-        # Here you would typically query the database for a specific genre and pass it to a template
-        return HttpResponse(f"Details of Genre {genre_id}")
-        # Example: genre = Genre.objects.get(genre_id=genre_id)
-        # return render(request, 'genre_detail.html', {'genre': genre})
-
-class ChapterListView(View):
-    def get(self, request, novel_id):
-        # Here you would typically query the database for chapters of a specific novel and pass them to a template
-        return HttpResponse(f"List of Chapters for Novel {novel_id}")
-        # Example: chapters = Chapter.objects.filter(novel_id=novel_id)
-        # return render(request, 'chapter_list.html', {'chapters': chapters})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Here you can add additional context if needed, like novels in this genre
+        context['novels'] = self.object.novels.all()
+        sort = self.request.GET.get('sort', 'latest')
+        context['sort'] = sort
+        if sort == 'latest':
+            context['novels'] = context['novels'].order_by('-last_updated')
+        elif sort == 'az':
+            context['novels'] = context['novels'].order_by('name')
+        elif sort == 'random':
+            context['novels'] = context['novels'].order_by('?')
+        elif sort == 'trending':
+            # Trending: sort by trending_score (expensive, so fetch all and sort in Python)
+            novels = list(context['novels'])
+            novels.sort(key=lambda x: x.trending_score(), reverse=True)
+            context['novels'] = novels
+        return context
 
 class ChapterDetailView(generic.DetailView):
     model = Chapter
@@ -165,7 +181,86 @@ class ChapterDetailView(generic.DetailView):
         context['novel'] = self.object.novel
         return context
 
+# Can I make a Chapter viewset for a specific novel?
+# Yes, you can create a Chapter viewset that filters chapters based on the novel they belong to.
 
+# Note: The above views are basic examples. In a real application, you would typically use Django's class-based views or function-based views to handle requests and responses more effectively.
+# You would also need to set up URL routing to connect these views to specific URLs in your application.
+# Additionally, you might want to implement authentication and permissions for your API views.
+
+class RatingView(View):
+    @method_decorator(login_required, name='dispatch')
+    def post(self, request, novel_id):
+        novel = get_object_or_404(Novel, pk=novel_id)
+        action = request.POST.get('action')
+        stars = request.POST.get('stars')
+        content = request.POST.get('content', '').strip()
+        user = request.user
+
+        user_rating = Rating.objects.filter(novel=novel, user=user).first()
+
+        if action == 'add' and not user_rating:
+            if stars:
+                Rating.objects.create(
+                    novel=novel,
+                    user=user,
+                    stars=int(stars),
+                    content=content if content else None
+                )
+        elif action == 'edit' and user_rating:
+            if stars:
+                user_rating.stars = int(stars)
+                user_rating.content = content if content else None
+                user_rating.save()
+        elif action == 'delete' and user_rating:
+            user_rating.delete()
+
+        return redirect('novel_rating', novel_id=novel.novel_id)
+
+    def get(self, request, novel_id):
+        novel = get_object_or_404(Novel, pk=novel_id)
+        ratings = Rating.objects.filter(novel=novel).select_related('user').order_by('-created_at')
+        user_rating = None
+        if request.user.is_authenticated:
+            user_rating = ratings.filter(user=request.user).first()
+        context = {
+            'novel': novel,
+            'ratings': ratings,
+            'user_rating': user_rating,
+            'placeholder_image': placeholder_image_url,
+        }
+        return render(request, 'onexweb/rating.html', context)
+
+# Something like the audit log of changes made to the novels, chapters, etc.
+class RecentChangesView(generic.ListView):
+    model = Chapter # Assuming you want to show recent changes in chapters
+    template_name = 'onexweb/recent_changes.html'
+    context_object_name = 'recent_changes'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Chapter.objects.order_by('-published_date')
+        return queryset
+    
+    # This will be like a table of recent changes, showing the timestamp and the chapter title.
+    # Example: <timestamp> - <chapter title> from Novel <novel title>
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+        
+
+class RandomNovelView(View):
+    def get(self, request):
+        # Here you would typically query the database for a random novel and pass it to a template
+        novel = Novel.objects.order_by('?').first()  # Get a random novel
+        if novel:
+            return redirect('novel_detail', pk=novel.pk)
+        else:
+            return HttpResponse("No novels available")
+
+# API ViewSets for Author, Genre, and Novel
+# This is legacy code, but it can be useful for building an API with Django REST Framework.
 class AuthorViewSet(ReadOnlyModelViewSet):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
@@ -180,36 +275,3 @@ class NovelViewSet(ReadOnlyModelViewSet):
     queryset = Novel.objects.all()
     serializer_class = NovelSerializer
     # You can add pagination, filtering, and other configurations here if needed
-
-# Can I make a Chapter viewset for a specific novel?
-# Yes, you can create a Chapter viewset that filters chapters based on the novel they belong to.
-
-# Note: The above views are basic examples. In a real application, you would typically use Django's class-based views or function-based views to handle requests and responses more effectively.
-# You would also need to set up URL routing to connect these views to specific URLs in your application.
-# Additionally, you might want to implement authentication and permissions for your API views.
-
-class RatingView(View):
-    def post(self, request, novel_id):
-        # Handle the rating logic for a specific novel
-        return HttpResponse(f"Rating logic for Novel {novel_id} goes here")
-    
-    def get(self, request, novel_id):
-        # Display the current rating for a specific novel
-        return HttpResponse(f"Current rating for Novel {novel_id} goes here")
-
-# Something like the audit log of changes made to the novels, chapters, etc.
-class RecentChangesView(View):
-    def get(self, request):
-        # Here you would typically query the database for recent changes and pass them to a template
-        return HttpResponse("Recent changes in the application")
-        # Example: changes = RecentChange.objects.all().order_by('-timestamp')[:10]
-        # return render(request, 'recent_changes.html', {'changes': changes})
-
-class RandomNovelView(View):
-    def get(self, request):
-        # Here you would typically query the database for a random novel and pass it to a template
-        novel = Novel.objects.order_by('?').first()  # Get a random novel
-        if novel:
-            return redirect('novel_detail', pk=novel.pk)
-        else:
-            return HttpResponse("No novels available")
