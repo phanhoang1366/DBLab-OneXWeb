@@ -6,6 +6,7 @@ from django.http import HttpResponse
 
 from django.views import View, generic
 from django.urls import reverse_lazy
+from django.db.models import Count
 
 from .models import Novel, Chapter, Author, Genre
 from django.db import models
@@ -32,10 +33,17 @@ class IndexView(generic.ListView):
         sorted_novels = sorted(trending_filter, key=lambda x: x.trending_score(), reverse=True) # but then that's expensive
         trending_novels = sorted_novels[:10]  # Get top 5 trending novels
 
+        # Add genres with novel counts
+        genres = (
+            Genre.objects.annotate(novel_count=Count('novels'))
+            .order_by('-novel_count', 'genre_name')
+        )
+
         context['latest_novels'] = latest_novels
         context['random_novels'] = random_novels
         context['trending_novels'] = trending_novels
         context['placeholder_image'] = placeholder_image_url  # Placeholder image URL
+        context['genres'] = genres  # Add genres to context
         # Example: get the cover image of the first novel, if any
         return context
         
@@ -157,4 +165,4 @@ class RatingView(View):
     def get(self, request, novel_id):
         # Display the current rating for a specific novel
         return HttpResponse(f"Current rating for Novel {novel_id} goes here")
-    
+
