@@ -1,0 +1,117 @@
+{% extends "onexweb/base.html" %}
+
+{% block extra_css %}
+.novels-list {
+    display: flex;
+    align: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+    max-width: 100%;
+}
+.novel-card {
+    flex: 0 0 auto;
+    width: 150px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.novel-card:hover {
+    transform: translateY(-5px);
+}
+.novel-image {
+    width: 150px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    margin-bottom: 10px;
+}
+.novel-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    line-height: 1.3;
+    max-height: 2.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 20px 0;
+}
+.pagination .page-link {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: #f0f0f0;
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+}
+.pagination .page-link.active,
+.pagination .page-link:hover {
+    background: #4299e1;
+    color: #fff;
+}
+.sorting-form {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    {% block info %}{% endblock %}
+    <form method="get" class="sorting-form">
+        <label for="sort">Sort by:</label>
+        <!-- also add the GET keywords above -->
+        <input type="hidden" name="page" value="{{ page_obj.number }}">
+        <input type="hidden" name="keywords" value="{% if request.GET.keywords %}{{ request.GET.keywords }}{% endif %}">
+        <select name="sort" id="sort" onchange="this.form.submit()">
+            <option value="latest" {% if sort == "latest" %}selected{% endif %}>Latest</option>
+            <option value="trending" {% if sort == "trending" %}selected{% endif %}>Trending</option>
+            <option value="random" {% if sort == "random" %}selected{% endif %}>Random</option>
+            <option value="az" {% if sort == "az" %}selected{% endif %}>A-Z</option>
+        </select>
+    </form>
+    <div class="novels-list">
+        {% for novel in novels %}
+        <div class="novel-card">
+            <a href="{% url 'novel_detail' novel.novel_id %}" title="{{ novel.name }}" style="text-decoration: none;">
+                <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="novel-image">
+                <div class="novel-name">{{ novel.name }}</div>
+            </a>
+        </div>
+        {% empty %}
+        <p>No novels available.</p>
+        {% endfor %}
+    </div>
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if sort %}&sort={{ sort }}{% endif %}">&laquo; Prev</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="page-link active">{{ num }}</span>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a class="page-link" href="?page={{ num }}{% if sort %}&sort={{ sort }}{% endif %}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if sort %}&sort={{ sort }}{% endif %}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -72,12 +72,12 @@
         <div class="header-menu" style="display: flex; align-items: center; gap: 15px;">
             <a href="{% url 'index' %}"><strong>LNDB</strong></a>
             <a href="{% url 'novel_list' %}">Novels</a>
-            <a href="{% url 'author_list' %}">Authors</a>
-            <a href="{% url 'genre_list' %}">Genres</a>
+            <a href="{% url 'recent_changes' %}">Changes</a>
+            <a href="{% url 'random_novel' %}">Random</a>
         </div>
         <div class="header-search" style="flex: 1; display: flex; justify-content: center;">
             <form method="get" action="{% url 'novel_list' %}" style="margin: 0; width: 100%; max-width: 350px; display: flex;">
-                <input type="text" name="keywords" placeholder="Search novels..." required style="flex: 1;">
+                <input type="text" name="keywords" placeholder="Search novels..." style="flex: 1;" {% if request.GET.keywords %}value="{{ request.GET.keywords }}"{% endif %}>
                 <button type="submit">Search</button>
             </form>
         </div>

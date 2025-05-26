@@ -1,10 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}{{ novel.name }} - Novel Details{% endblock %}</title>
-    {% block extra_css %}
+{% extends "onexweb/base.html" %}
+
+{% block title %}{{ novel.name }} - Novel Details{% endblock %}
+
+{% block extra_css %}
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,47 +12,6 @@
             color: #333;
         }
 
-        .header {
-            position: sticky;
-            justify-content: space-between;
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 10px 20px;
-        }
-        
-        .header a {
-            text-decoration: none;
-            color: #007bff;
-            margin-left: 10px;
-        }
-
-        .header a:hover {
-            text-decoration: underline;
-        }
-
-        .header form {
-            align-items: center;
-        }
-
-        .header input[type="text"] {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-right: 10px;
-        }
-
-        .header button {
-            padding: 8px 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .header button:hover {
-            background-color: #0056b3;
-        }
-        
         .novel-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -196,20 +153,20 @@
             color: #555;
             text-align: justify;
         }
-
+        
         .chapters-list {
             padding: 30px;
             border-top: 1px solid #ecf0f1;
             background: #fff;
         }
-
+        
         .chapters-title {
             font-size: 1.5rem;
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 15px;
         }
-
+        
         .chapters-list ul {
             list-style: none;
             padding: 0;
@@ -227,7 +184,7 @@
             color: #c700ff;
             text-decoration: underline;
         }
-
+        
         .meta-info {
             display: flex;
             gap: 30px;
@@ -239,19 +196,6 @@
         }
         
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 10px;
-            }
-            .header-menu,
-            .user-actions {
-                justify-content: center;
-                width: 100%;
-            }
-            .user-actions {
-                margin-top: 5px;
-            }
             .novel-header {
                 flex-direction: column;
                 text-align: center;
@@ -278,35 +222,11 @@
             }
         }
     </style>
-    {% endblock %}
-</head>
-<body>
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-        <div class="header-menu" style="display: flex; align-items: center; gap: 15px;">
-            <a href="{% url 'index' %}"><strong>LNDB</strong></a>
-            <a href="{% url 'novel_list' %}">Novels</a>
-            <a href="{% url 'author_list' %}">Authors</a>
-            <a href="{% url 'genre_list' %}">Genres</a>
-        </div>
-        <div class="header-search" style="flex: 1; display: flex; justify-content: center;">
-            <form method="get" action="{% url 'novel_list' %}" style="margin: 0; width: 100%; max-width: 350px; display: flex;">
-                <input type="text" name="keywords" placeholder="Search novels..." required style="flex: 1;">
-                <button type="submit">Search</button>
-            </form>
-        </div>
-        <div class="user-actions" style="display: flex; align-items: center; gap: 10px; min-width: 120px; justify-content: flex-end;">
-            {% if user.is_authenticated %}
-                <span style="margin-right: 8px;">Hi, {{ user.username }}</span>
-                <form method="post" style="display:inline;" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" style="background: none; color: #007bff; border: none; cursor: pointer; padding: 0;">Logout</button>
-                </form>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-                <a href="{% url 'signup' %}">Register</a>
-            {% endif %}
-        </div>
-    </div>
+{% endblock %}
+
+{% block content %}
+<div class="empty-space" style="height: 20px;"></div>
+<div class="novel-container">
     <div class="novel-header">
         <div class="novel-cover">
             <img src="{% if novel.cover %} {{ novel.cover.url }} {% else %} {{ placeholder_image }} {% endif %}" alt="{{ novel.name }}" class="cover-image">
@@ -324,7 +244,6 @@
                         {% endfor %}
                     </div>
                 </div>
-                
                 <div class="info-section">
                     <div class="info-label">Genre</div>
                     <div class="info-value">
@@ -335,19 +254,16 @@
                         {% endfor %}
                     </div>
                 </div>
-                
                 <div class="info-section">
                     <div class="info-label">Status</div>
                     <div class="info-value">
                         <span class="status {{ novel.status|lower }}">{{ novel.status }}</span>
                     </div>
                 </div>
-
                 <div class="info-section">
                     <div class="info-label">Rating</div>
                     <div class="info-value">
                         {% if ratings %}
-                            <!-- This is an array with variables in form (average, count) -->
                             {% with average=ratings.0 average_rating=ratings.1 %}
                                 <span class="rating">{{ average|floatformat:1 }}</span> 
                                 <a href="{% url 'novel_rating' novel.novel_id %}" class="rating-link">
@@ -362,21 +278,18 @@
                     </div>
                 </div>
             </div>
-            
             <div class="meta-info">
                 <div><strong>Created:</strong> {{ novel.created_at|date:"F d, Y" }}</div>
                 <div><strong>Last Updated:</strong> {{ novel.last_updated|date:"F d, Y" }}</div>
             </div>
         </div>
     </div>
-    
     <div class="novel-description">
         <h2 class="description-title">Description</h2>
         <div class="description-text">
             {{ novel.description|linebreaks }}
         </div>
     </div>
-
     <div class="chapters-list">
         <h2 class="chapters-title">Chapters</h2>
         <ul>
@@ -391,6 +304,5 @@
             {% endfor %}
         </ul>
     </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

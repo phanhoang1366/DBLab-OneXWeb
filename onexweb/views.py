@@ -7,6 +7,9 @@ from django.http import HttpResponse
 from django.views import View, generic
 from django.urls import reverse_lazy
 from django.db.models import Count
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
+from django.shortcuts import redirect
 
 from .models import Novel, Chapter, Author, Genre
 from django.db import models
@@ -60,10 +63,38 @@ class SignUpView(generic.CreateView):
 class NovelListView(generic.ListView):
     template_name = 'onexweb/novel_list.html'
     context_object_name = 'novels'
+    paginate_by = 18
 
     def get_queryset(self):
-        # Here you would typically query the database for novels based on search criteria
-        return Novel.objects.all()  # You can add filtering logic here based on request parameters
+        queryset = Novel.objects.all()
+        keywords = self.request.GET.get('keywords')
+        if keywords:
+            queryset = queryset.filter(name__icontains=keywords)
+        sort = self.request.GET.get('sort', 'latest')
+        if sort == 'latest':
+            queryset = queryset.order_by('-last_updated')
+        elif sort == 'az':
+            queryset = queryset.order_by('name')
+        elif sort == 'random':
+            queryset = queryset.order_by('?')
+        elif sort == 'trending':
+            # Trending: sort by trending_score (expensive, so fetch all and sort in Python)
+            novels = list(queryset)
+            novels.sort(key=lambda x: x.trending_score(), reverse=True)
+            return novels
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sort'] = self.request.GET.get('sort', 'latest')
+        context['placeholder_image'] = placeholder_image_url
+        context['keywords'] = self.request.GET.get('keywords', '')
+        # Add genres with novel counts for sidebar if needed
+        context['genres'] = (
+            Genre.objects.annotate(novel_count=Count('novels'))
+            .order_by('-novel_count', 'genre_name')
+        )
+        return context
     
 class NovelDetailView(generic.DetailView):
     model = Novel
@@ -166,3 +197,19 @@ class RatingView(View):
         # Display the current rating for a specific novel
         return HttpResponse(f"Current rating for Novel {novel_id} goes here")
 
+# Something like the audit log of changes made to the novels, chapters, etc.
+class RecentChangesView(View):
+    def get(self, request):
+        # Here you would typically query the database for recent changes and pass them to a template
+        return HttpResponse("Recent changes in the application")
+        # Example: changes = RecentChange.objects.all().order_by('-timestamp')[:10]
+        # return render(request, 'recent_changes.html', {'changes': changes})
+
+class RandomNovelView(View):
+    def get(self, request):
+        # Here you would typically query the database for a random novel and pass it to a template
+        novel = Novel.objects.order_by('?').first()  # Get a random novel
+        if novel:
+            return redirect('novel_detail', pk=novel.pk)
+        else:
+            return HttpResponse("No novels available")
