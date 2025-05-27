@@ -142,6 +142,9 @@ class Rating(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # likes = models.ManyToManyField('auth.User', related_name='liked_ratings', blank=True)
 
+    class Meta:
+        unique_together = ('novel', 'user')
+    
     def __str__(self):
         return f"Rating by {self.user} on {self.novel.name}"
     
