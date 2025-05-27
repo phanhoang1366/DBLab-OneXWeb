@@ -35,8 +35,8 @@ class Genre(models.Model):
 class Novel(models.Model):
     novel_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
-    authors = models.ManyToManyField(Author, blank=True, related_name='novels')
-    genres = models.ManyToManyField(Genre, blank=True, related_name='novels')
+    authors = models.ManyToManyField(Author, blank=False, related_name='novels')
+    genres = models.ManyToManyField(Genre, blank=False, related_name='novels')
     description = models.TextField()
     cover = models.ImageField(upload_to='novel_covers/', blank=True, null=True)
 
