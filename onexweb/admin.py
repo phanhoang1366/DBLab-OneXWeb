@@ -153,9 +153,11 @@ class RatingAdmin(admin.ModelAdmin):
         return True
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        # Filter out ratings that are not related to the current user
-        if request.user.is_authenticated:
+        if request.user.is_superuser:
+            return qs
+        elif request.user.is_authenticated:
             return qs.filter(user=request.user)
+    
         return qs.none()
     
 # class CommentAdmin(admin.ModelAdmin):
