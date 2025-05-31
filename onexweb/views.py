@@ -71,6 +71,19 @@ class NovelListView(generic.ListView):
         keywords = self.request.GET.get('keywords')
         if keywords:
             queryset = queryset.filter(name__icontains=keywords)
+        author = self.request.GET.get('author')
+        if author:
+            queryset = queryset.filter(authors__author_name__icontains=author)
+
+        genre_ids = self.request.GET.getlist('genres')
+        if genre_ids:
+            genre_ids = [int(gid) for gid in genre_ids if gid.isdigit()]
+            queryset = queryset.filter(genres__pk__in=genre_ids).distinct()
+
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+
         sort = self.request.GET.get('sort', 'latest')
         if sort == 'latest':
             queryset = queryset.order_by('-last_updated')
@@ -97,6 +110,17 @@ class NovelListView(generic.ListView):
         )
         return context
     
+class AdvancedSearchView(generic.ListView):
+    # This is a lazy way to implement advanced search as it submits to NovelListView
+    model = Novel
+    template_name = 'onexweb/advanced_search.html'
+    context_object_name = 'novel'    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['genres'] = Genre.objects.all()
+        return context
+
 class NovelDetailView(generic.DetailView):
     model = Novel
     template_name = 'onexweb/novel_detail.html'

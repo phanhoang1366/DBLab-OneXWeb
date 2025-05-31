@@ -92,7 +92,7 @@ class ChapterAdmin(admin.ModelAdmin):
     form = ChapterAdminForm # Use the custom form for Chapter model
 
     list_display = ('novel', 'chapter_number', 'title', 'published_date')
-    search_fields = ('title',)
+    search_fields = ('title', 'chapter_number',)
     list_filter = ('novel',)
     ordering = ('novel', 'chapter_number')
     list_per_page = 10

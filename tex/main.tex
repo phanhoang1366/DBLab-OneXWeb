@@ -106,7 +106,7 @@
 \begin{frame}
     \frametitle{Các thực thể}
     \begin{itemize}
-        \item \textbf{User}(\underline{user\_id}, username, password, role, created\_at)
+        \item \textbf{User}(\underline{user\_id}, username, password, role, created\_at, ...)
         \item \textbf{Author}(\underline{author\_id}, author\_name, description, profile\_picture)
         \item \textbf{Novel}(\underline{novel\_id}, name, author, genre, description, cover, status, last\_updated, created\_at)
         \item \textbf{Genre}(\underline{genre\_id}, genre\_name, genre\_description)
@@ -155,6 +155,26 @@
 \end{frame}
 
 \section{Câu lệnh SQL}
+
+\begin{frame}[fragile]
+\frametitle{Bảng auth\_user (Người dùng hệ thống)}
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
+-- Django's built-in User table (simplified)
+CREATE TABLE auth_user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(150) UNIQUE NOT NULL,
+    first_name VARCHAR(150),
+    last_name VARCHAR(150),
+    email VARCHAR(254),
+    is_staff BOOLEAN DEFAULT FALSE,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_superuser BOOLEAN DEFAULT FALSE,
+    date_joined DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_login DATETIME NULL,
+    password VARCHAR(128) NOT NULL
+);
+\end{lstlisting}
+\end{frame}
 
 % Slide 1: Author Table
 \begin{frame}[fragile]
@@ -255,7 +275,9 @@ CREATE TABLE Chapter (
     title VARCHAR(255) NOT NULL,
     published_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     content TEXT NOT NULL,
-    FOREIGN KEY (novel_id) REFERENCES Novel(novel_id)
+    FOREIGN KEY (novel_id) REFERENCES Novel(novel_id),
+    UNIQUE(novel_id, chapter_number)
+    -- Ensure chapter_number is unique within a novel
 );
 \end{lstlisting}
 \end{frame}
@@ -272,7 +294,8 @@ CREATE TABLE Rating (
     content TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (novel_id) REFERENCES Novel(novel_id),
-    FOREIGN KEY (user_id) REFERENCES auth_user(id)
+    FOREIGN KEY (user_id) REFERENCES auth_user(id),
+    UNIQUE(novel_id, user_id)
 );
 \end{lstlisting}
 \end{frame}
@@ -330,17 +353,45 @@ ORDER BY created_at DESC;
 \end{lstlisting}
 \end{frame}
 
-% Slide 11: Query - Lấy thông tin tác giả của tiểu thuyết
+% Slide 10.5: Function to format author names
 \begin{frame}[fragile]
+\frametitle{Hàm: Định dạng tên tác giả}
+\begin{lstlisting}[language=SQL, basicstyle=\footnotesize\ttfamily]
+-- Create function to format author names
+CREATE FUNCTION format_author_names(novel_id_param INTEGER)
+RETURNS TEXT
+READS SQL DATA
+DETERMINISTIC
+BEGIN
+    DECLARE author_list TEXT DEFAULT '';
+    
+    SELECT GROUP_CONCAT(a.author_name SEPARATOR ', ') INTO author_list
+    FROM Author a JOIN Novel_Authors na ON a.author_id = na.author_id
+    WHERE na.novel_id = novel_id_param ORDER BY a.author_name;
+    
+    RETURN COALESCE(author_list, 'Unknown Author');
+END;
+\end{lstlisting}
+\end{frame}
+
+% Slide 11: Query - Lấy thông tin tác giả của tiểu thuyết
+\begin{frame}[fragile, allowframebreaks]
 \frametitle{Truy vấn: Lấy thông tin tác giả của tiểu thuyết}
 \begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 -- Get novels with their authors
-SELECT n.name as novel_name, a.author_name 
+SELECT n.name as novel_name, 
+       format_author_names(n.novel_id) as authors, 
+       n.status, 
+       n.last_updated
 FROM Novel n
 JOIN Novel_Authors na ON n.novel_id = na.novel_id
 JOIN Author a ON na.author_id = a.author_id
-ORDER BY n.name;
+GROUP BY n.novel_id, n.name, n.status, n.last_updated
+ORDER BY n.last_updated DESC, n.name;
+\end{lstlisting}
+\framebreak
 
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
 -- Get all novels by a specific author
 SELECT n.name, n.status, n.last_updated
 FROM Novel n
@@ -420,18 +471,24 @@ ORDER BY avg_rating DESC;
 \begin{frame}[fragile]
 \frametitle{Truy vấn phức tạp: Lấy thông tin tiểu thuyết}
 \begin{lstlisting}[language=SQL, basicstyle=\tiny\ttfamily]
--- Get detailed information about novels with their authors and genres
-SELECT n.novel_id, 
-       n.name AS novel_name, 
-       n.status AS novel_status,
-       a.author_name AS author_name, 
-       g.genre_name AS genre_name
+-- Get detailed info: novels with authors, genres, avg rating, chapter count
+SELECT 
+    n.novel_id,
+    n.name AS novel_name,
+    n.status AS novel_status,
+    GROUP_CONCAT(DISTINCT a.author_name) AS authors,
+    GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
+    IFNULL(AVG(r.stars), 0) AS avg_rating,
+    COUNT(DISTINCT c.chapter_id) AS chapter_count
 FROM Novel n
-JOIN Novel_Authors na ON n.novel_id = na.novel_id
-JOIN Author a ON na.author_id = a.author_id
-JOIN Novel_Genres ng ON n.novel_id = ng.novel_id
-JOIN Genre g ON ng.genre_id = g.genre_id
+LEFT JOIN Novel_Authors na ON n.novel_id = na.novel_id
+LEFT JOIN Author a ON na.author_id = a.author_id
+LEFT JOIN Novel_Genres ng ON n.novel_id = ng.novel_id
+LEFT JOIN Genre g ON ng.genre_id = g.genre_id
+LEFT JOIN Rating r ON n.novel_id = r.novel_id
+LEFT JOIN Chapter c ON n.novel_id = c.novel_id
 WHERE n.status IN ('ongoing', 'completed')
+GROUP BY n.novel_id, n.name, n.status
 ORDER BY n.last_updated DESC, n.name;
 \end{lstlisting}
 \end{frame}

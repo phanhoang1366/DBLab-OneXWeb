@@ -84,12 +84,24 @@ class Novel(models.Model):
         ratings = self.rating_set.all()
         avg_rating = sum(r.stars for r in ratings) / ratings.count() if ratings.exists() else 0
 
-        # Calculate recency weight
-        days_since_update = (timezone.now() - self.last_updated).days
-        recency_weight = 1 / (days_since_update + 1)  # +1 to avoid division by zero
+        # Get new ratings in the last 7 days
+        new_ratings = ratings.filter(created_at__gte=timezone.now() - datetime.timedelta(days=7))
+        new_rating_count = new_ratings.count()
 
-        # Trending score
-        return avg_rating * recency_weight
+        # Get hours since last update
+        hours_since_last_update = (timezone.now() - self.last_updated).total_seconds() / 3600
+
+        # Calculate trending score
+        if hours_since_last_update == 0:
+            hours_since_last_update = 1
+
+        trending_score = (
+            new_rating_count * 0.5 +
+            avg_rating * 0.3 +
+            (1 / hours_since_last_update) * 0.2
+        ) # Fine-tune these weights as needed
+        
+        return trending_score
 
 class Chapter(models.Model):
     chapter_id = models.AutoField(primary_key=True)
