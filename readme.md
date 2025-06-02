@@ -19,6 +19,8 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
+Also we have `local_settings.py` which is used to override the settings in `settings.py`. You can use this file to set your own settings, such as the database type and other settings. Look at the `local_settings.py.example` file for an example of how to use it.
+
 Follow the DigitalOcean tutorial on how to set up a Django project with MariaDB or MySQL for production:
 https://www.digitalocean.com/tutorials/how-to-set-up-django-with-postgres-nginx-and-gunicorn-on-ubuntu#step-6-testing-gunicorn-s-ability-to-serve-the-project
 

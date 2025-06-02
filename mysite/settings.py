@@ -153,3 +153,8 @@ REST_FRAMEWORK = {
 
 LOGIN_REDIRECT_URL = "index"  # Redirect to index after login
 LOGOUT_REDIRECT_URL = "index"  # Redirect to index after logout
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass

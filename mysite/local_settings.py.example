@@ -1,0 +1,9 @@
+# local_settings.py
+# Change this to False in production.
+DEBUG = True
+
+# Use this to generate a secret key for local development.
+# python3 -c 'from django.core.management.utils import get_random_secret_key;print(get_random_secret_key())'
+SECRET_KEY = 'your_local_secret_key'
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'example.com']
