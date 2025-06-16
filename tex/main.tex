@@ -39,6 +39,7 @@
 \lstset{style=mystyle}
 
 \usepackage{amsfonts, amsmath, amssymb, amsthm}
+
 \title[HTQL Light Novel]{Hệ thống quản lý Light Novel}
 \subtitle{Project môn học: Thực hành CSDL}
 \author{Nhóm 1}
@@ -64,28 +65,76 @@
 % chuẩn hóa
 % thêm thực thể: 
 \section{Mô tả bài toán}
-\begin{frame}{Mục tiêu}
-    Xây dựng một hệ thống web cho phép người dùng đọc light novel, tiếp cận với những bộ truyện mới nhất, và có thể bình luận về các bộ truyện mà mình đã đọc.
-    \begin{block}{Yêu cầu hệ thống}
-        Người dùng có thể:
+
+\subsection{Mở đầu}
+\begin{frame}{References}
+\bibliographystyle{abbrv}
+\bibliography{main}
+\end{frame}
+
+% \begin{frame}[allowframebreaks]{Bối cảnh vấn đề}
+%     Light Novel là một thể loại tiểu thuyết đóng vai trò quan trọng trong nền văn hóa đại chúng Nhật Bản hiện nay. Light novel thường được đặc trưng bởi khả năng đọc dễ dàng và bao gồm các hình minh họa theo phong cách anime hoặc manga. Tên gọi "light novel" đã được sử dụng hơn 25 năm, và bối cảnh của thể loại này đã thay đổi đáng kể trong khoảng thời gian đó. \cite{gong2022gender,hasegawa2023statistical}
+
+%     \framebreak
+
+%     Các nguồn thông tin cho thấy sự thay đổi của light novel có mối liên hệ chặt chẽ với truyền thông internet trong những năm gần đây. Đặc biệt, nội dung do người dùng tạo ra (UGC) và các nền tảng gửi tiểu thuyết trực tuyến như \textbf{Shōsetsuka ni Narō} và \textbf{Kakuyomu} đã trở nên phổ biến và là nguồn quan trọng để tuyển chọn các tác phẩm light novel mới. Những nền tảng internet này được phân tích là có mối liên hệ gần gũi với các giai đoạn phát triển sau này của light novel (2016-2020). \cite{hasegawa2023statistical}
+
+%     \framebreak
+
+%     Dựa trên những thông tin này, dự án đọc Light Novel trực tuyến này sẽ là một phần của xu hướng hiện tại, nơi công nghệ internet tạo điều kiện thuận lợi cho việc tiếp cận và trải nghiệm light novel, một thể loại văn học năng động và ngày càng gắn bó với môi trường kỹ thuật số. Dự án này sẽ mang đến cơ hội khám phá thế giới phong phú của light novel, từ các thể loại đa dạng như lãng mạn, phiêu lưu hay lát cắt cuộc sống, và theo dõi sự phát triển của chúng trong bối cảnh văn hóa đại chúng hiện đại.
+% \end{frame}
+
+\begin{frame}[allowframebreaks]{Bối cảnh vấn đề}
+    \begin{block}{Bối cảnh vấn đề}
+    \begin{itemize}
+        \item Light Novel là thể loại tiểu thuyết quan trọng trong văn hóa đại chúng Nhật Bản.
+        \item Đặc trưng bởi:
         \begin{itemize}
-            \item Xem tổng quan về các bộ light novel, bao gồm tên, tác giả, thể loại, mô tả, ảnh bìa, đánh giá, trạng thái (đang ra hay đã hoàn thành), tóm tắt nội dung, thời gian cập nhật gần nhất và thời gian tạo.
+            \item Cách viết dễ đọc.
+            \item Có minh họa theo phong cách anime/manga.
+        \end{itemize}
+        \item Tên gọi "light novel" đã tồn tại hơn 25 năm; bối cảnh phát triển đã thay đổi nhiều trong thời gian này. \cite{gong2022gender,hasegawa2023statistical}
+    \end{itemize}
+    \end{block}
+
+    \begin{block}{Sự thay đổi gần đây}
+    \begin{itemize}
+        \item Internet có vai trò lớn trong sự thay đổi gần đây của light novel.
+        \item Các nền tảng trực tuyến như \textbf{Shōsetsuka ni Narō} và \textbf{Kakuyomu} trở nên phổ biến.
+        \begin{itemize}
+            \item Là nguồn tuyển chọn tác phẩm light novel mới.
+            \item Gắn liền với giai đoạn phát triển 2016–2020. \cite{hasegawa2023statistical}
+        \end{itemize}
+    \end{itemize}
+    \end{block}
+
+    \begin{block}{Ý nghĩa của dự án}
+        \begin{itemize}
+            \item Dự án đọc light novel trực tuyến hưởng lợi từ xu hướng này.
+            \item Công nghệ internet giúp việc tiếp cận và trải nghiệm light novel trở nên thuận tiện.
+            \item Dự án cho phép khám phá:
+            \begin{itemize}
+                \item Các thể loại như lãng mạn, phiêu lưu, lát cắt cuộc sống.
+                \item Sự phát triển của light novel trong bối cảnh văn hóa đại chúng hiện đại.
+            \end{itemize}
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\subsection{Mục tiêu}
+\begin{frame}{Mục tiêu}
+    Xây dựng một hệ thống web cho phép người dùng đọc light novel, tiếp cận với những bộ truyện mới nhất, và có thể đánh giá về các bộ light novel đó. Hệ thống này sẽ bao gồm các tính năng như:
+    \begin{block}{Đối với người dùng}
+        \begin{itemize}
+            \item Xem tổng quan về các bộ light novel, bao gồm tên, tác giả, thể loại, mô tả, ảnh bìa, đánh giá, trạng thái (đang ra hay đã hoàn thành), thời gian cập nhật và thời gian tạo.
             \item Xem danh sách các chương của một bộ light novel, bao gồm tên chương, thời gian xuất bản và nội dung.
             \item Đọc các chương của bộ light novel.
-            \item Đưa ra đánh giá và bình luận cho bộ novel đó.
+            \item Đưa ra đánh giá cho bộ novel đó.
         \end{itemize}
     \end{block}
 \end{frame}
 
 \begin{frame}{Yêu cầu hệ thống (continued)}
-    \begin{block}{Đối với tác giả}
-        Tác giả có thể:
-        \begin{itemize}
-            \item Thêm và sửa đổi các thuộc tính như thể loại, mô tả, trạng thái của một LN mình viết 
-            \item Tạo và chỉnh sửa các chương của một LN 
-        \end{itemize}
-    \end{block}
-    \pause
     \begin{block}{Đối với người quản trị}
         \begin{itemize}
             \item Có thể thêm và xoá các tác giả, LNs và thể loại
@@ -108,7 +157,7 @@
     \begin{itemize}
         \item \textbf{User}(\underline{user\_id}, username, password, role, created\_at, ...)
         \item \textbf{Author}(\underline{author\_id}, author\_name, description, profile\_picture)
-        \item \textbf{Novel}(\underline{novel\_id}, name, author, genre, description, cover, status, last\_updated, created\_at)
+        \item \textbf{Novel}(\underline{novel\_id}, name, genre, description, cover, status, last\_updated, created\_at)
         \item \textbf{Genre}(\underline{genre\_id}, genre\_name, genre\_description)
         \item \textbf{Chapter}(\underline{chapter\_id}, novel\_id (fk), chapter\_number, title, published\_date, content)
         % \item \textbf{Comment}(\underline{comment\_id}, user\_id (fk), novel\_id (fk), content, is\_visible, created\_at)
@@ -469,27 +518,20 @@ ORDER BY avg_rating DESC;
 
 % Slide 15: Query - Truy vấn phức tạp
 \begin{frame}[fragile]
-\frametitle{Truy vấn phức tạp: Lấy thông tin tiểu thuyết}
-\begin{lstlisting}[language=SQL, basicstyle=\tiny\ttfamily]
--- Get detailed info: novels with authors, genres, avg rating, chapter count
-SELECT 
-    n.novel_id,
-    n.name AS novel_name,
-    n.status AS novel_status,
-    GROUP_CONCAT(DISTINCT a.author_name) AS authors,
-    GROUP_CONCAT(DISTINCT g.genre_name) AS genres,
-    IFNULL(AVG(r.stars), 0) AS avg_rating,
-    COUNT(DISTINCT c.chapter_id) AS chapter_count
-FROM Novel n
-LEFT JOIN Novel_Authors na ON n.novel_id = na.novel_id
-LEFT JOIN Author a ON na.author_id = a.author_id
-LEFT JOIN Novel_Genres ng ON n.novel_id = ng.novel_id
-LEFT JOIN Genre g ON ng.genre_id = g.genre_id
+\frametitle{Truy vấn phức tạp: Lấy thông tin tiểu thuyết cụ thể}
+\begin{lstlisting}[language=SQL, basicstyle=\small\ttfamily]
+-- Get novels with author containing 'Can' and genre 'Fantasy', while excluding those with low ratings
+SELECT n.name, format_author_names(n.novel_id) as authors, 
+       g.genre_name, AVG(r.stars) as avg_rating, 
+       n.status, n.last_updated
+FROM Novel n NATURAL JOIN Novel_Genres ng
+NATURAL JOIN Genre g NATURAL JOIN Novel_Authors na
+NATURAL JOIN Author a
 LEFT JOIN Rating r ON n.novel_id = r.novel_id
-LEFT JOIN Chapter c ON n.novel_id = c.novel_id
-WHERE n.status IN ('ongoing', 'completed')
-GROUP BY n.novel_id, n.name, n.status
-ORDER BY n.last_updated DESC, n.name;
+WHERE a.author_name LIKE '%Can%' 
+  AND g.genre_name = 'Fantasy' AND AVG(r.stars) >= 3.0
+GROUP BY n.novel_id, n.name, g.genre_name, n.status, n.last_updated
+ORDER BY n.last_updated DESC, avg_rating DESC;
 \end{lstlisting}
 \end{frame}
 
@@ -497,15 +539,27 @@ ORDER BY n.last_updated DESC, n.name;
 \begin{frame}[fragile]
 \frametitle{Truy vấn: Lấy tiểu thuyết đang hot}
 \begin{lstlisting}[language=SQL, basicstyle=\scriptsize\ttfamily]
--- Get trending novels (recent updates + high ratings)
+-- Get trending novels (recent updates + high ratings + recent ratings)
 SELECT 
     n.name, 
     n.status,
     AVG(r.stars) as avg_rating,
     COUNT(r.rating_id) as rating_count,
     n.last_updated,
-    (AVG(r.stars) * (1.0 / (julianday('now') - julianday(n.last_updated) + 1))) 
-    as trending_score
+    (
+        -- new_rating_count in last 7 days * 0.5
+        (
+            SELECT COUNT(*) FROM Rating r2
+            WHERE r2.novel_id = n.novel_id
+              AND r2.created_at >= datetime('now', '-7 days')
+        ) * 0.5
+        +
+        -- avg_rating * 0.3
+        COALESCE(AVG(r.stars), 0) * 0.3
+        +
+        -- (1 / hours_since_last_update) * 0.2
+        (1.0 / ( (julianday('now') - julianday(n.last_updated)) * 24 + 1 )) * 0.2
+    ) as trending_score
 FROM Novel n
 LEFT JOIN Rating r ON n.novel_id = r.novel_id
 WHERE n.status IN ('ongoing', 'completed')
@@ -526,12 +580,35 @@ ADD COLUMN trending_score REAL DEFAULT 0;
 CREATE TRIGGER update_trending_score
 AFTER INSERT OR UPDATE ON Rating
 BEGIN
+    -- Declare variables
+    DECLARE new_rating_count INTEGER;
+    DECLARE avg_rating REAL;
+    DECLARE hours_since_last_update REAL;
+    DECLARE trending_score REAL;
+
+    -- Calculate new_rating_count in last 7 days
+    SELECT COUNT(*) INTO new_rating_count
+    FROM Rating r2
+    WHERE r2.novel_id = NEW.novel_id
+      AND r2.created_at >= datetime('now', '-7 days');
+
+    -- Calculate avg_rating
+    SELECT COALESCE(AVG(stars), 0) INTO avg_rating
+    FROM Rating
+    WHERE novel_id = NEW.novel_id;
+
+    -- Calculate hours_since_last_update
+    SELECT (julianday('now') - julianday(last_updated)) * 24 + 1 INTO hours_since_last_update
+    FROM Novel
+    WHERE novel_id = NEW.novel_id;
+
+    -- Calculate trending_score
+    SET trending_score = new_rating_count * 0.5
+                       + avg_rating * 0.3
+                       + (1.0 / hours_since_last_update) * 0.2;
+
     UPDATE Novel
-    SET trending_score = (
-        SELECT AVG(stars) * (1.0 / (julianday('now') - julianday(last_updated) + 1))
-        FROM Rating
-        WHERE novel_id = NEW.novel_id
-    )
+    SET trending_score = trending_score
     WHERE novel_id = NEW.novel_id;
 END;
 \end{lstlisting}
@@ -544,9 +621,18 @@ DO
 BEGIN
     UPDATE Novel
     SET trending_score = (
-        SELECT AVG(stars) * (1.0 / (julianday('now') - julianday(last_updated) + 1))
-        FROM Rating
-        WHERE novel_id = Novel.novel_id
+        -- new_rating_count in last 7 days * 0.5
+        (
+            SELECT COUNT(*) FROM Rating r2
+            WHERE r2.novel_id = Novel.novel_id
+              AND r2.created_at >= datetime('now', '-7 days')
+        ) * 0.5
+        +
+        -- avg_rating * 0.3
+        COALESCE((SELECT AVG(stars) FROM Rating WHERE novel_id = Novel.novel_id), 0) * 0.3
+        +
+        -- (1 / hours_since_last_update) * 0.2
+        (1.0 / ((julianday('now') - julianday(Novel.last_updated)) * 24 + 1)) * 0.2
     );
 END;
 \end{lstlisting}

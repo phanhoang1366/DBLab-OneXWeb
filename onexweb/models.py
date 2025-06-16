@@ -51,6 +51,11 @@ class Novel(models.Model):
     last_updated = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['name'])
+        ]
+
     def __str__(self):
         return self.name
     
